@@ -729,7 +729,19 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
 		// Trigger initialization of all non-lazy singleton beans...
+		//触发所有非延迟加载单例bean的初始化，主要步骤是调用getBean
 		for (String beanName : beanNames) {
+
+			/**
+			 * 对于一个bean定义来说，可能存在以下几种情况
+			 * 1.该beanDefinition存在“父定义”，首先使用“父定义”的参数构建一个RootBeanDefinition
+			 * 然后再使用BeanDefinition的参数来进行覆盖
+			 * 2.该beanDefinition不存在“父定义”，并且该BeanDefinition的类型是RootBeanDefinition
+			 * 直接返回该RootBeanDefinition的一个克隆
+			 * 3.该BeanDefinition不存在“父定义”,但是该BeanDefinition的类型不是RootBeanDefinition
+			 * 使用该BeanDefiniton的参数构建一个RootBeanDefiniton
+			 */
+			//合并父BeanDefinition
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				if (isFactoryBean(beanName)) {
@@ -758,6 +770,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		// Trigger post-initialization callback for all applicable beans...
+		//遍历beanNames，触发所有SmartInitializingSingleton的后初始化回调
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName);
 			if (singletonInstance instanceof SmartInitializingSingleton) {
@@ -1055,6 +1068,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			Object result = getAutowireCandidateResolver().getLazyResolutionProxyIfNecessary(
 					descriptor, requestingBeanName);
 			if (result == null) {
+				//doResolveDependency
 				result = doResolveDependency(descriptor, requestingBeanName, autowiredBeanNames, typeConverter);
 			}
 			return result;
@@ -1062,7 +1076,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	}
 
 	@Nullable
-	public Object doResolveDependency(DependencyDescriptor descriptor, @Nullable String beanName,
+	public Object  doResolveDependency(DependencyDescriptor descriptor, @Nullable String beanName,
 			@Nullable Set<String> autowiredBeanNames, @Nullable TypeConverter typeConverter) throws BeansException {
 
 		InjectionPoint previousInjectionPoint = ConstructorResolver.setCurrentInjectionPoint(descriptor);

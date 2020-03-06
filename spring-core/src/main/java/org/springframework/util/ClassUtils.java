@@ -451,6 +451,7 @@ public abstract class ClassUtils {
 	 */
 	public static boolean isPrimitiveWrapper(Class<?> clazz) {
 		Assert.notNull(clazz, "Class must not be null");
+		//primitiveWrapperTypeMap缓存中包含8种基础类型和包装类的映射
 		return primitiveWrapperTypeMap.containsKey(clazz);
 	}
 
@@ -463,6 +464,7 @@ public abstract class ClassUtils {
 	 */
 	public static boolean isPrimitiveOrWrapper(Class<?> clazz) {
 		Assert.notNull(clazz, "Class must not be null");
+		//clazz为基础类型或者clazz是基础类型的封装类
 		return (clazz.isPrimitive() || isPrimitiveWrapper(clazz));
 	}
 

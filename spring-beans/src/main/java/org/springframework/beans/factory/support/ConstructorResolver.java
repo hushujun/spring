@@ -110,20 +110,28 @@ class ConstructorResolver {
 	 */
 	public BeanWrapper autowireConstructor(String beanName, RootBeanDefinition mbd,
 			@Nullable Constructor<?>[] chosenCtors, @Nullable Object[] explicitArgs) {
-
+		//bean包装类
 		BeanWrapperImpl bw = new BeanWrapperImpl();
 		this.beanFactory.initBeanWrapper(bw);
-
+		//最终用于实例化的构造函数
 		Constructor<?> constructorToUse = null;
+		//用于实例化的参数Holder
 		ArgumentsHolder argsHolderToUse = null;
+		//实例化的参数
 		Object[] argsToUse = null;
 
 		if (explicitArgs != null) {
+			//如果explicitArgs不为空，则构造函数的参数直接使用explicitArgs
+			//什么时候会不为空呢？通过getBean方法调用时，显示指定了参数，则explicitArgs不为空
 			argsToUse = explicitArgs;
 		}
 		else {
+			//尝试从缓存中获取已经解析过的构造函数的参数
 			Object[] argsToResolve = null;
 			synchronized (mbd.constructorArgumentLock) {
+				//获取已解析的构造方法
+				//一般不会有，因为构造方法一般会提供一个
+				//除非有多个，那么才会存在已经解析完成的构造方法
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
 				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
 					// Found a cached constructor...
@@ -134,10 +142,12 @@ class ConstructorResolver {
 				}
 			}
 			if (argsToResolve != null) {
+				//如果argsToResolve不为空，则都构造函数参数进行解析
+				//如给定方法的构造函数，A(int,int)则通过此方法后就会把配置中的("1","1")转换成(1,1)
 				argsToUse = resolvePreparedArguments(beanName, mbd, bw, constructorToUse, argsToResolve);
 			}
 		}
-
+		//构造函数没有被缓存，通过配置文件获取
 		if (constructorToUse == null) {
 			// Need to resolve the constructor.
 			boolean autowiring = (chosenCtors != null ||
@@ -151,6 +161,9 @@ class ConstructorResolver {
 			else {
 				ConstructorArgumentValues cargs = mbd.getConstructorArgumentValues();
 				resolvedValues = new ConstructorArgumentValues();
+				//解析mbd的构造函数参数，并返回参数个数
+				//这边解析mbd的构造函数参数，主要是处理我们通过xml方式定义的构造函数注入的参数
+				//如果是通过@Autowire注解直接修饰构造函数，则mbd是没有这些参数的
 				minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 			}
 
@@ -168,11 +181,12 @@ class ConstructorResolver {
 							"] from ClassLoader [" + beanClass.getClassLoader() + "] failed", ex);
 				}
 			}
+			//对给定的构造函数排序，先按方法修饰符排序，public排非public前面，再按构造函数参数个数排序参数多的排前面
 			AutowireUtils.sortConstructors(candidates);
 			int minTypeDiffWeight = Integer.MAX_VALUE;
 			Set<Constructor<?>> ambiguousConstructors = null;
 			LinkedList<UnsatisfiedDependencyException> causes = null;
-
+			//
 			for (Constructor<?> candidate : candidates) {
 				Class<?>[] paramTypes = candidate.getParameterTypes();
 
@@ -195,6 +209,9 @@ class ConstructorResolver {
 								paramNames = pnd.getParameterNames(candidate);
 							}
 						}
+						//获取构造方法参数值列表
+						//因为spring只能提供字符串的参数值，所以在这里需要进行转换
+						//argsHolder所包含的值就是转换之后的
 						argsHolder = createArgumentArray(beanName, mbd, resolvedValues, bw, paramTypes, paramNames,
 								getUserDeclaredConstructor(candidate), autowiring);
 					}

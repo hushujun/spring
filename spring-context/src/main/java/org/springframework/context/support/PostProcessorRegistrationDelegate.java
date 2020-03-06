@@ -48,7 +48,7 @@ import org.springframework.lang.Nullable;
  */
 final class PostProcessorRegistrationDelegate {
 
-	public static void  invokeBeanFactoryPostProcessors(
+	public static void   invokeBeanFactoryPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {
 
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.

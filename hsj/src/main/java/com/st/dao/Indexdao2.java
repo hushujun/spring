@@ -1,3 +1,4 @@
+
 package com.st.dao;
 
 import org.springframework.beans.BeansException;
@@ -27,3 +28,4 @@ public class Indexdao2 implements ApplicationContextAware {
 		System.out.println("ApplicationContext applicationContext");
 	}
 }
+
